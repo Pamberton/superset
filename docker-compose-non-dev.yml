@@ -42,6 +42,8 @@ services:
     restart: unless-stopped
     volumes:
       - redis:/data
+    networks:
+      - superset
 
   db:
     env_file:
@@ -49,6 +51,8 @@ services:
     image: postgres:15
     container_name: superset_db
     restart: unless-stopped
+    networks:
+      - superset
     volumes:
       - db_home:/var/lib/postgresql/data
       - ./docker/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
@@ -69,6 +73,7 @@ services:
     volumes: *superset-volumes
     networks:
       - net
+      - superset
 
   superset-init:
     container_name: superset_init
@@ -80,6 +85,8 @@ services:
     depends_on: *superset-depends-on
     user: "root"
     volumes: *superset-volumes
+    networks:
+      - superset
     healthcheck:
       disable: true
 
@@ -100,6 +107,8 @@ services:
           "CMD-SHELL",
           "celery -A superset.tasks.celery_app:app inspect ping -d celery@$$HOSTNAME",
         ]
+    networks:
+      - superset
 
   superset-worker-beat:
     build:
@@ -114,6 +123,8 @@ services:
     volumes: *superset-volumes
     healthcheck:
       disable: true
+    networks:
+      - superset
 
 volumes:
   superset_home:
@@ -128,3 +139,5 @@ networks:
     external: true
   isolated-db-network:
     external: true
+  superset:
+    internal: true
